@@ -8,10 +8,10 @@ class Field:
         self.width = width
         self.height = height
         self.icons = {
-            0: '.',
+            0: 'X',
             1: 'O',
-            2: 'X',
-            3: '*'
+            2: '🐍',
+            3: '🍎'
         }
         self.snake_coords = []
         self._generate_field()
