@@ -7,33 +7,36 @@ class SnakeGame:
         self.master = master
         self.master.title("Snake Game")
 
-        
-        self.left_frame = tk.Frame(master, width=250, height=500, bg="white")
+        # Set up the frames for the stock chart and the snake game
+        self.left_frame = tk.Frame(master, width=500, height=500, bg="black")
         self.left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.separator_line = tk.Frame(master, width=2, height=500, bg="grey")
+        self.separator_line.pack(side=tk.LEFT, fill=tk.Y)
 
         self.right_frame = tk.Frame(master, width=500, height=500, bg="black")
         self.right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
-        
+        # Initialize the canvas for the snake game
         self.width = 500
         self.height = 500
         self.canvas = tk.Canvas(self.right_frame, width=self.width, height=self.height, bg='black')
         self.canvas.pack()
 
-        
-        self.stock_canvas = tk.Canvas(self.left_frame, width=250, height=500, bg='white')
+        # Initialize the stock chart
+        self.stock_canvas = tk.Canvas(self.left_frame, width=500, height=500, bg='black')
         self.stock_canvas.pack()
 
         self.start_time = time.time()
         self.elapsed_time = 0
-        self.stopwatch = self.stock_canvas.create_text(200, 20, text="Time: 0s", fill="black", font=("Arial", 12))
+        self.stopwatch = self.stock_canvas.create_text(450, 20, text="Time: 0s", fill="white", font=("Arial", 12))
 
         self.stock_value = 100
         self.stock_values = [self.stock_value]
-        self.max_time = 60  
+        self.max_time = 60  # Assume maximum game duration for the chart
         self.max_price = 100
 
-        
+        # Draw the chart axes
         self.draw_axes()
 
         self.snake_size = 20
@@ -119,7 +122,7 @@ class SnakeGame:
             self.food_position = self.set_new_food_position()
             self.canvas.coords(self.food, self.food_position[0], self.food_position[1],
                                self.food_position[0] + self.snake_size, self.food_position[1] + self.snake_size)
-            self.update_stock_value(10)  
+            self.update_stock_value(10)  # Increase stock value by $10
 
     def game_over(self, reason):
         self.is_game_over = True
@@ -139,12 +142,12 @@ class SnakeGame:
         for x, y in self.snake:
             self.snake_objects.append(self.canvas.create_rectangle(x, y, x + self.snake_size, y + self.snake_size, fill="green"))
         self.is_game_over = False
-        self.stock_value = 100  
-        self.start_time = time.time()  
+        self.stock_value = 100  # Reset stock value
+        self.start_time = time.time()  # Reset timer
         self.stock_values = [self.stock_value]
         self.stock_canvas.delete("chart_line")
-        self.draw_axes()  
-        self.update_stock_chart()  
+        self.draw_axes()  # Redraw axes
+        self.update_stock_chart()  # Reset stock chart
         self.move_snake()
 
     def update_stock_chart(self):
@@ -154,13 +157,13 @@ class SnakeGame:
         self.elapsed_time = int(time.time() - self.start_time)
         self.stock_canvas.itemconfig(self.stopwatch, text=f"Time: {self.elapsed_time}s")
         
-        self.stock_value -= 5  
+        self.stock_value -= 5  # Decrease stock value by $5 each second
         
         if self.stock_value <= 0:
             self.stock_value = 0
             self.game_over("Stock value reached $0!")
 
-        
+        # Update the stock values list and redraw the chart line
         self.stock_values.append(self.stock_value)
         self.draw_chart_line()
 
@@ -169,30 +172,30 @@ class SnakeGame:
         
     def update_stock_value(self, value):
         self.stock_value += value
-        self.stock_value = min(self.stock_value, 100)  
-        self.stock_values[-1] = self.stock_value  
+        self.stock_value = min(self.stock_value, 100)  # Cap the stock value at $100
+        self.stock_values[-1] = self.stock_value  # Update the latest stock value
 
     def draw_axes(self):
-        
+        # Draw y-axis (price) with labels
         for i in range(0, self.max_price + 1, 20):
             y = 490 - (i * 490 / self.max_price)
-            self.stock_canvas.create_line(40, y, 45, y, fill="black")
-            self.stock_canvas.create_text(30, y, text=f"${i}", anchor=tk.E, font=("Arial", 8))
+            self.stock_canvas.create_line(50, y, 55, y, fill="white")
+            self.stock_canvas.create_text(40, y, text=f"${i}", anchor=tk.E, fill="white", font=("Arial", 8))
 
-        
+        # Draw x-axis (time) with labels
         for i in range(0, self.max_time + 1, 10):
-            x = 40 + (i * 200 / self.max_time)
-            self.stock_canvas.create_line(x, 490, x, 485, fill="black")
-            self.stock_canvas.create_text(x, 495, text=f"{i}s", anchor=tk.N, font=("Arial", 8))
+            x = 50 + (i * 400 / self.max_time)
+            self.stock_canvas.create_line(x, 490, x, 485, fill="white")
+            self.stock_canvas.create_text(x, 495, text=f"{i}s", anchor=tk.N, fill="white", font=("Arial", 8))
 
-        
-        self.stock_canvas.create_line(40, 490, 240, 490, fill="black", width=2)  
-        self.stock_canvas.create_line(40, 10, 40, 490, fill="black", width=2)   
+        # Draw the main axes
+        self.stock_canvas.create_line(50, 490, 450, 490, fill="white", width=2)  # x-axis
+        self.stock_canvas.create_line(50, 10, 50, 490, fill="white", width=2)   # y-axis
 
     def draw_chart_line(self):
-        x1, y1 = 40, 490 - (self.stock_values[0] * 490 / self.max_price)
+        x1, y1 = 50, 490 - (self.stock_values[0] * 490 / self.max_price)
         for i, value in enumerate(self.stock_values):
-            x2 = 40 + (i * 200 / self.max_time)
+            x2 = 50 + (i * 400 / self.max_time)
             y2 = 490 - (value * 490 / self.max_price)
             self.stock_canvas.create_line(x1, y1, x2, y2, fill="green", width=2, tags="chart_line")
             x1, y1 = x2, y2
