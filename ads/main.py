@@ -126,6 +126,10 @@ class SnakeGame:
         for x, y in self.snake:
             self.snake_objects.append(self.canvas.create_rectangle(x, y, x + self.snake_size, y + self.snake_size, fill="green"))
         self.is_game_over = False
+        self.next_ad_time = self.get_next_ad_time()  # Reset ad timer
+        if not self.ad_thread.is_alive():  # Restart ad thread if it's not alive
+            self.ad_thread = threading.Thread(target=self.play_ads)
+            self.ad_thread.start()
         self.move_snake()
 
     def get_next_ad_time(self):
@@ -172,7 +176,7 @@ class SnakeGame:
         cap = cv2.VideoCapture(video_path)
 
         def play_video():
-            while cap.isOpened():
+            while cap.isOpened() and not self.is_game_over:
                 ret, frame = cap.read()
                 if ret:
                     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -189,9 +193,6 @@ class SnakeGame:
             ad_window.destroy()
 
         threading.Thread(target=play_video).start()
-
-        # Close the ad window after the video ends
-        self.master.after(4000, ad_window.destroy)
 
 if __name__ == "__main__":
     root = tk.Tk()
