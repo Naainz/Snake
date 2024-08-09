@@ -31,7 +31,7 @@ class SnakeGame:
         self.stopwatch = self.stock_canvas.create_text(450, 20, text="Time: 0s", fill="white", font=("Arial", 12))
 
         self.stock_value = 100
-        self.previous_stock_value = self.stock_value
+        self.previous_stock_values = [self.stock_value]
         self.max_price = 100
 
         # Draw the chart axes
@@ -142,7 +142,7 @@ class SnakeGame:
         self.is_game_over = False
         self.stock_value = 100  # Reset stock value
         self.elapsed_time = 0  # Reset timer
-        self.previous_stock_value = self.stock_value
+        self.previous_stock_values = [self.stock_value]
         self.stock_canvas.delete("chart_line")
         self.stock_canvas.delete("x_axis_label")
         self.draw_axes()  # Redraw axes
@@ -156,7 +156,7 @@ class SnakeGame:
         self.elapsed_time += 1
         self.stock_canvas.itemconfig(self.stopwatch, text=f"Time: {self.elapsed_time}s")
         
-        self.previous_stock_value = self.stock_value
+        self.previous_stock_values.append(self.stock_value)
         self.stock_value -= 5  # Decrease stock value by $5 each second
         
         if self.stock_value <= 0:
@@ -169,7 +169,7 @@ class SnakeGame:
             self.master.after(1000, self.update_stock_chart)
         
     def update_stock_value(self, value):
-        self.previous_stock_value = self.stock_value
+        self.previous_stock_values[-1] = self.stock_value
         self.stock_value += value
         self.stock_value = min(self.stock_value, 100)  # Cap the stock value at $100
 
@@ -183,18 +183,19 @@ class SnakeGame:
         # Draw the main y-axis
         self.stock_canvas.create_line(50, 490, 50, 10, fill="white", width=2)
 
-        # Draw the initial x-axis label for time
-        self.stock_canvas.create_text(50, 495, text=f"0s", anchor=tk.N, fill="white", font=("Arial", 8), tags="x_axis_label")
-
     def extend_chart_line(self):
-        # Draw the line from the previous second to the current second across the entire width
-        x1 = 50  # Start at the left side of the chart
-        y1 = 490 - (self.previous_stock_value * 490 / self.max_price)
-        x2 = 450  # End at the right side of the chart
-        y2 = 490 - (self.stock_value * 490 / self.max_price)
+        # Determine how many segments to draw based on elapsed time
+        segments = self.elapsed_time
+        segment_width = 400 / segments
 
-        line_color = "green" if y2 < y1 else "red"
-        self.stock_canvas.create_line(x1, y1, x2, y2, fill=line_color, width=2, tags="chart_line")
+        self.stock_canvas.delete("chart_line")
+        for i in range(1, segments + 1):
+            x1 = 50 + (i - 1) * segment_width
+            y1 = 490 - (self.previous_stock_values[i - 1] * 490 / self.max_price)
+            x2 = 50 + i * segment_width
+            y2 = 490 - (self.previous_stock_values[i] * 490 / self.max_price)
+            line_color = "green" if y2 < y1 else "red"
+            self.stock_canvas.create_line(x1, y1, x2, y2, fill=line_color, width=2, tags="chart_line")
 
         # Update the x-axis label for the current time
         self.stock_canvas.delete("x_axis_label")
