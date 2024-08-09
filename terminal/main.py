@@ -8,10 +8,10 @@ class Field:
         self.width = width
         self.height = height
         self.icons = {
-            0: """.""",  
-            1: """🟩""",  
-            2: """🟢""",  
-            3: """🍎""",  
+            0: '.',
+            1: 'O',
+            2: 'X',
+            3: '*'
         }
         self.snake_coords = []
         self._generate_field()
@@ -138,7 +138,7 @@ class Snake:
 def main(screen):
     while True:
         screen.clear()
-        field = Field(30, 20)
+        field = Field(25,10)
         snake = Snake("Hackclub Arcade")
         snake.set_field(field)
         screen.timeout(100)
