@@ -1,15 +1,35 @@
 import tkinter as tk
 import random
+import time
 
 class SnakeGame:
     def __init__(self, master):
         self.master = master
         self.master.title("Snake Game")
+
+        
+        self.left_frame = tk.Frame(master, width=250, height=500, bg="white")
+        self.left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.right_frame = tk.Frame(master, width=500, height=500, bg="black")
+        self.right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+        
         self.width = 500
         self.height = 500
-        self.canvas = tk.Canvas(master, width=self.width, height=self.height, bg='black')
+        self.canvas = tk.Canvas(self.right_frame, width=self.width, height=self.height, bg='black')
         self.canvas.pack()
+
         
+        self.stock_canvas = tk.Canvas(self.left_frame, width=250, height=500, bg='white')
+        self.stock_canvas.pack()
+
+        self.start_time = time.time()
+        self.stopwatch = self.stock_canvas.create_text(125, 20, text="Time: 0s", fill="black", font=("Arial", 12))
+
+        self.stock_value = 100
+        self.stock_line = self.stock_canvas.create_line(10, 490, 240, 490, fill="green", width=2)
+
         self.snake_size = 20
         self.snake = [(100, 100), (80, 100), (60, 100)]
         self.snake_direction = "Right"
@@ -26,6 +46,7 @@ class SnakeGame:
         
         self.is_game_over = False
         self.master.bind("<KeyPress>", self.key_press_handler)
+        self.update_stock_chart()
         self.move_snake()
         
     def set_new_food_position(self):
@@ -92,11 +113,12 @@ class SnakeGame:
             self.food_position = self.set_new_food_position()
             self.canvas.coords(self.food, self.food_position[0], self.food_position[1],
                                self.food_position[0] + self.snake_size, self.food_position[1] + self.snake_size)
+            self.update_stock_value(10)  
 
     def game_over(self, reason):
         self.is_game_over = True
         self.canvas.create_text(self.width/2, self.height/2, 
-                                text=f"GAME OVER\n{reason}\nPress Enter to Play Again", fill="white", font=("Satoshi", 24))
+                                text=f"GAME OVER\n{reason}\nPress Enter to Play Again", fill="white", font=("Arial", 24))
 
     def restart_game(self):
         self.canvas.delete("all")
@@ -111,7 +133,36 @@ class SnakeGame:
         for x, y in self.snake:
             self.snake_objects.append(self.canvas.create_rectangle(x, y, x + self.snake_size, y + self.snake_size, fill="green"))
         self.is_game_over = False
+        self.stock_value = 100  
+        self.start_time = time.time()  
+        self.update_stock_chart()  
         self.move_snake()
+
+    def update_stock_chart(self):
+        if self.is_game_over:
+            return
+        
+        elapsed_time = int(time.time() - self.start_time)
+        self.stock_canvas.itemconfig(self.stopwatch, text=f"Time: {elapsed_time}s")
+        
+        self.stock_value -= 5  
+        
+        if self.stock_value <= 0:
+            self.stock_value = 0
+            self.game_over("Stock value reached $0!")
+
+        
+        x2 = 240
+        y2 = 490 - (490 * self.stock_value / 100)
+        self.stock_canvas.coords(self.stock_line, 10, 490, x2, y2)
+        self.stock_canvas.itemconfig(self.stock_line, fill="green" if self.stock_value > 0 else "red")
+        
+        if not self.is_game_over:
+            self.master.after(1000, self.update_stock_chart)
+        
+    def update_stock_value(self, value):
+        self.stock_value += value
+        self.stock_value = min(self.stock_value, 100)  
 
 if __name__ == "__main__":
     root = tk.Tk()
