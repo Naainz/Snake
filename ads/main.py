@@ -2,10 +2,9 @@ import tkinter as tk
 import random
 import time
 import threading
-from tkinter import messagebox
 from tkinter import Toplevel
+import cv2
 from PIL import Image, ImageTk
-import os
 
 class SnakeGame:
     def __init__(self, master):
@@ -36,7 +35,7 @@ class SnakeGame:
         self.ad_popup_label = None
         self.ad_popup_timer = None
         
-        self.snake_speed = 135  
+        self.snake_speed = 135  # 35% slower
         self.ad_timer = 10
         self.next_ad_time = self.get_next_ad_time()
         self.ad_thread = threading.Thread(target=self.play_ads)
@@ -156,28 +155,42 @@ class SnakeGame:
             self.ad_popup_timer -= 1
             self.master.after(1000, self.show_ad_popup)
         else:
-            self.ad_popup_label.place_forget()
-            self.ad_popup_label = None
+            if self.ad_popup_label is not None:
+                self.ad_popup_label.place_forget()
+                self.ad_popup_label = None
 
     def show_ad(self):
         ad_window = Toplevel(self.master)
-        ad_window.geometry("400x300+100+100")
+        ad_window.geometry("640x480+100+100")
         ad_window.overrideredirect(True)
         ad_window.attributes("-topmost", True)
 
-        video_file = random.choice(os.listdir("./db"))
-        video_path = os.path.join("./db", video_file)
+        # Path to the specific ad video
+        video_path = "./db/the_only.mp4"
 
-        
-        video_image = Image.open("ad_preview.jpg")  
-        video_image = video_image.resize((400, 300), Image.ANTIALIAS)
-        video_photo = ImageTk.PhotoImage(video_image)
+        # Use OpenCV to play the video
+        cap = cv2.VideoCapture(video_path)
 
-        label = tk.Label(ad_window, image=video_photo)
-        label.image = video_photo
-        label.pack()
+        def play_video():
+            while cap.isOpened():
+                ret, frame = cap.read()
+                if ret:
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    frame = Image.fromarray(frame)
+                    frame = ImageTk.PhotoImage(frame)
+                    label = tk.Label(ad_window, image=frame)
+                    label.image = frame
+                    label.pack()
+                    ad_window.update()
+                else:
+                    break
 
-        
+            cap.release()
+            ad_window.destroy()
+
+        threading.Thread(target=play_video).start()
+
+        # Close the ad window after the video ends
         self.master.after(4000, ad_window.destroy)
 
 if __name__ == "__main__":
