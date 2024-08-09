@@ -27,6 +27,11 @@
             font-size: 20px;
             display: none;
         }
+        #paused-message {
+            display: none;
+            font-size: 24px;
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -34,6 +39,7 @@
 <h1>Snake Game (Check Console)</h1>
 <p id="countdown">The game will start in 3 seconds...</p>
 <p id="warning">This game is not available on mobile devices. Please play on a desktop or laptop computer.</p>
+<p id="paused-message">PAUSED: Click on this page to resume the game!</p>
 
 <script>
     function isMobile() {
@@ -53,11 +59,21 @@
             direction = { x: 1, y: 0 };
             food = { x: Math.floor(Math.random() * gridSize), y: Math.floor(Math.random() * gridSize) };
             gameOver = false;
-            gamePaused = true; // Start the game in paused mode
-            drawGame();
+            gamePaused = false;
+        }
+
+        function startNewGame(withCountdown = true) {
+            initializeGame();
+            if (withCountdown) {
+                startGameCountdown();
+            } else {
+                updateGame();
+            }
         }
 
         function changeDirection(event) {
+            if (gamePaused || gameOver) return;
+
             const keyPressed = event.key;
             switch (keyPressed) {
                 case 'ArrowUp':
@@ -74,8 +90,7 @@
                     break;
                 case 'Enter':
                     if (gameOver) {
-                        initializeGame();
-                        drawGame();
+                        startNewGame(false); // Restart the game immediately without countdown
                     }
                     break;
             }
@@ -157,15 +172,28 @@
                 } else {
                     clearInterval(countdownInterval);
                     countdownElement.style.display = 'none';
-                    gamePaused = false; // Unpause the game
-                    updateGame(); // Start the game loop
+                    updateGame(); // Start the game loop after countdown
                 }
             }, 1000);
         }
 
+        function handleFocus() {
+            if (document.hasFocus()) {
+                gamePaused = false;
+                document.getElementById('paused-message').style.display = 'none';
+                if (!gameOver) {
+                    updateGame();
+                }
+            } else {
+                gamePaused = true;
+                document.getElementById('paused-message').style.display = 'block';
+            }
+        }
+
+        window.addEventListener('focus', handleFocus);
+        window.addEventListener('blur', handleFocus);
         document.addEventListener('keydown', changeDirection);
-        initializeGame();
-        startGameCountdown();
+        startNewGame(true); // Start with a countdown
     }
 </script>
 
