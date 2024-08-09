@@ -24,11 +24,20 @@
 <h1>Snake Game (Check Console)</h1>
 
 <script>
-    const gridSize = 10;
-    let snake = [{ x: 2, y: 2 }];
-    let direction = { x: 1, y: 0 };
-    let food = { x: 5, y: 5 };
-    let gameOver = false;
+    // Detect if the user is on a mobile device
+    function isMobile() {
+        return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    }
+
+    if (isMobile()) {
+        document.getElementById('warning').style.display = 'block';
+        document.querySelector('h1').style.display = 'none';
+    } else {
+        const gridSize = 10;
+        let snake = [{ x: 2, y: 2 }];
+        let direction = { x: 1, y: 0 };
+        let food = { x: 5, y: 5 };
+        let gameOver = false;
 
     document.addEventListener('keydown', changeDirection);
 
@@ -62,21 +71,20 @@
 
         const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
 
-        if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
-            gameOver = true;
-            console.log("Game Over! You hit a wall.");
-            return;
-        }
-
-        for (let segment of snake) {
-            if (segment.x === head.x && segment.y === head.y) {
+            if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
                 gameOver = true;
-                console.log("Game Over! You ran into yourself.");
+                console.log("Game Over! You hit a wall.");
                 return;
             }
-        }
-
-        snake.unshift(head);
+            
+            for (let segment of snake) {
+                if (segment.x === head.x && segment.y === head.y) {
+                    gameOver = true;
+                    console.log("Game Over! You ran into yourself.");
+                    return;
+                }
+            }
+            snake.unshift(head);
 
         if (head.x === food.x && head.y === food.y) {
             console.log("Yummy! You ate the food.");
@@ -85,21 +93,25 @@
             snake.pop();
         }
 
-        console.clear();
-        console.log("Snake Game:");
-        for (let y = 0; y < gridSize; y++) {
-            let row = '';
-            for (let x = 0; x < gridSize; x++) {
-                if (x === food.x && y === food.y) {
-                    row += 'F ';
-                } else if (snake.some(segment => segment.x === x && segment.y === y)) {
-                    row += 'S ';
-                } else {
-                    row += '. ';
+            console.clear();
+            console.log("Snake Game:");
+            for (let y = 0; y < gridSize; y++) {
+                let row = '';
+                for (let x = 0; x < gridSize; x++) {
+                    if (x === food.x && y === food.y) {
+                        row += '🍎 ';
+                    } else if (snake.some(segment => segment.x === x && segment.y === y)) {
+                        if (x === head.x && y === head.y) {
+                            row += '🟢 ';
+                        } else {
+                            row += '🟩 ';
+                        }
+                    } else {
+                        row += '⬜ ';
+                    }
                 }
+                console.log(row);
             }
-            console.log(row);
-        }
 
         setTimeout(updateGame, 200);
     }
