@@ -13,98 +13,119 @@
             align-items: center;
             height: 100vh;
             margin: 0;
+            text-align: center;
         }
         h1 {
-            text-align: center;
+            margin-bottom: 20px;
+        }
+        #warning {
+            color: red;
+            font-size: 20px;
+            display: none;
         }
     </style>
 </head>
 <body>
 
 <h1>Snake Game (Check Console)</h1>
+<p id="warning">This game is not available on mobile devices. Please play on a desktop or laptop computer.</p>
 
 <script>
-    const gridSize = 10;
-    let snake = [{ x: 2, y: 2 }];
-    let direction = { x: 1, y: 0 };
-    let food = { x: 5, y: 5 };
-    let gameOver = false;
-
-    document.addEventListener('keydown', changeDirection);
-
-    function changeDirection(event) {
-        const keyPressed = event.key;
-        switch (keyPressed) {
-            case 'ArrowUp':
-                if (direction.y === 0) direction = { x: 0, y: -1 };
-                break;
-            case 'ArrowDown':
-                if (direction.y === 0) direction = { x: 0, y: 1 };
-                break;
-            case 'ArrowLeft':
-                if (direction.x === 0) direction = { x: -1, y: 0 };
-                break;
-            case 'ArrowRight':
-                if (direction.x === 0) direction = { x: 1, y: 0 };
-                break;
-        }
+    function isMobile() {
+        return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     }
 
-    function generateFood() {
-        food = {
-            x: Math.floor(Math.random() * gridSize),
-            y: Math.floor(Math.random() * gridSize)
-        };
-    }
+    if (isMobile()) {
+        document.getElementById('warning').style.display = 'block';
+        document.querySelector('h1').style.display = 'none';
+    } else {
+        const gridSize = 10;
+        let snake = [{ x: 2, y: 2 }];
+        let direction = { x: 1, y: 0 };
+        let food = { x: 5, y: 5 };
+        let gameOver = false;
 
-    function updateGame() {
-        if (gameOver) return;
+        document.addEventListener('keydown', changeDirection);
 
-        const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
-
-        if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
-            gameOver = true;
-            console.log("Game Over! You hit a wall.");
-            return;
+        function changeDirection(event) {
+            const keyPressed = event.key;
+            switch (keyPressed) {
+                case 'ArrowUp':
+                    if (direction.y === 0) direction = { x: 0, y: -1 };
+                    break;
+                case 'ArrowDown':
+                    if (direction.y === 0) direction = { x: 0, y: 1 };
+                    break;
+                case 'ArrowLeft':
+                    if (direction.x === 0) direction = { x: -1, y: 0 };
+                    break;
+                case 'ArrowRight':
+                    if (direction.x === 0) direction = { x: 1, y: 0 };
+                    break;
+            }
         }
 
-        for (let segment of snake) {
-            if (segment.x === head.x && segment.y === head.y) {
+        function generateFood() {
+            food = {
+                x: Math.floor(Math.random() * gridSize),
+                y: Math.floor(Math.random() * gridSize)
+            };
+        }
+
+        function updateGame() {
+            if (gameOver) return;
+
+            const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+            if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
                 gameOver = true;
-                console.log("Game Over! You ran into yourself.");
+                console.log("Game Over! You hit a wall.");
                 return;
             }
-        }
 
-        snake.unshift(head);
-
-        if (head.x === food.x && head.y === food.y) {
-            console.log("Yummy! You ate the food.");
-            generateFood();
-        } else {
-            snake.pop();
-        }
-
-        console.clear();
-        console.log("Snake Game:");
-        for (let y = 0; y < gridSize; y++) {
-            let row = '';
-            for (let x = 0; x < gridSize; x++) {
-                if (x === food.x && y === food.y) {
-                    row += 'F ';
-                } else if (snake.some(segment => segment.x === x && segment.y === y)) {
-                    row += 'S ';
-                } else {
-                    row += '. ';
+            for (let segment of snake) {
+                if (segment.x === head.x && segment.y === head.y) {
+                    gameOver = true;
+                    console.log("Game Over! You ran into yourself.");
+                    return;
                 }
             }
-            console.log(row);
+
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                console.log("Yummy! You ate the food.");
+                generateFood();
+            } else {
+                snake.pop();
+            }
+
+            console.clear();
+            console.log("Snake Game:");
+            for (let y = 0; y < gridSize; y++) {
+                let row = '';
+                for (let x = 0; x < gridSize; x++) {
+                    if (x === food.x && y === food.y) {
+                        row += '🍎 ';
+                    } else if (snake.some(segment => segment.x === x && segment.y === y)) {
+                        if (x === head.x && y === head.y) {
+                            row += '🟢 ';
+                        } else {
+                            row += '🟩 ';
+                        }
+                    } else {
+                        row += '⬜ ';
+                    }
+                }
+                row += ' '.repeat(y); // Append a distinct number of spaces to each line
+                console.log(row);
+            }
+
+            setTimeout(updateGame, 200);
         }
 
-        setTimeout(updateGame, 200);
+        updateGame();
     }
-
-    updateGame();
 </script>
 
 </body>
