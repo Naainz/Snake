@@ -25,10 +25,16 @@ class SnakeGame:
         self.stock_canvas.pack()
 
         self.start_time = time.time()
-        self.stopwatch = self.stock_canvas.create_text(125, 20, text="Time: 0s", fill="black", font=("Arial", 12))
+        self.elapsed_time = 0
+        self.stopwatch = self.stock_canvas.create_text(200, 20, text="Time: 0s", fill="black", font=("Arial", 12))
 
         self.stock_value = 100
-        self.stock_line = self.stock_canvas.create_line(10, 490, 240, 490, fill="green", width=2)
+        self.stock_values = [self.stock_value]
+        self.max_time = 60  
+        self.max_price = 100
+
+        
+        self.draw_axes()
 
         self.snake_size = 20
         self.snake = [(100, 100), (80, 100), (60, 100)]
@@ -135,6 +141,9 @@ class SnakeGame:
         self.is_game_over = False
         self.stock_value = 100  
         self.start_time = time.time()  
+        self.stock_values = [self.stock_value]
+        self.stock_canvas.delete("chart_line")
+        self.draw_axes()  
         self.update_stock_chart()  
         self.move_snake()
 
@@ -142,8 +151,8 @@ class SnakeGame:
         if self.is_game_over:
             return
         
-        elapsed_time = int(time.time() - self.start_time)
-        self.stock_canvas.itemconfig(self.stopwatch, text=f"Time: {elapsed_time}s")
+        self.elapsed_time = int(time.time() - self.start_time)
+        self.stock_canvas.itemconfig(self.stopwatch, text=f"Time: {self.elapsed_time}s")
         
         self.stock_value -= 5  
         
@@ -152,17 +161,41 @@ class SnakeGame:
             self.game_over("Stock value reached $0!")
 
         
-        x2 = 240
-        y2 = 490 - (490 * self.stock_value / 100)
-        self.stock_canvas.coords(self.stock_line, 10, 490, x2, y2)
-        self.stock_canvas.itemconfig(self.stock_line, fill="green" if self.stock_value > 0 else "red")
-        
+        self.stock_values.append(self.stock_value)
+        self.draw_chart_line()
+
         if not self.is_game_over:
             self.master.after(1000, self.update_stock_chart)
         
     def update_stock_value(self, value):
         self.stock_value += value
         self.stock_value = min(self.stock_value, 100)  
+        self.stock_values[-1] = self.stock_value  
+
+    def draw_axes(self):
+        
+        for i in range(0, self.max_price + 1, 20):
+            y = 490 - (i * 490 / self.max_price)
+            self.stock_canvas.create_line(40, y, 45, y, fill="black")
+            self.stock_canvas.create_text(30, y, text=f"${i}", anchor=tk.E, font=("Arial", 8))
+
+        
+        for i in range(0, self.max_time + 1, 10):
+            x = 40 + (i * 200 / self.max_time)
+            self.stock_canvas.create_line(x, 490, x, 485, fill="black")
+            self.stock_canvas.create_text(x, 495, text=f"{i}s", anchor=tk.N, font=("Arial", 8))
+
+        
+        self.stock_canvas.create_line(40, 490, 240, 490, fill="black", width=2)  
+        self.stock_canvas.create_line(40, 10, 40, 490, fill="black", width=2)   
+
+    def draw_chart_line(self):
+        x1, y1 = 40, 490 - (self.stock_values[0] * 490 / self.max_price)
+        for i, value in enumerate(self.stock_values):
+            x2 = 40 + (i * 200 / self.max_time)
+            y2 = 490 - (value * 490 / self.max_price)
+            self.stock_canvas.create_line(x1, y1, x2, y2, fill="green", width=2, tags="chart_line")
+            x1, y1 = x2, y2
 
 if __name__ == "__main__":
     root = tk.Tk()
