@@ -7,7 +7,7 @@ class SnakeGame:
         self.master = master
         self.master.title("Snake Game")
 
-        # Set up the frames for the stock chart and the snake game
+        
         self.left_frame = tk.Frame(master, width=500, height=500, bg="black")
         self.left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
@@ -17,13 +17,13 @@ class SnakeGame:
         self.right_frame = tk.Frame(master, width=500, height=500, bg="black")
         self.right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
-        # Initialize the canvas for the snake game
+        
         self.width = 500
         self.height = 500
         self.canvas = tk.Canvas(self.right_frame, width=self.width, height=self.height, bg='black')
         self.canvas.pack()
 
-        # Initialize the stock chart
+        
         self.stock_canvas = tk.Canvas(self.left_frame, width=500, height=500, bg='black')
         self.stock_canvas.pack()
 
@@ -32,9 +32,9 @@ class SnakeGame:
 
         self.stock_value = 100
         self.previous_stock_values = [self.stock_value]
-        self.max_price = 100
+        self.max_price = 200  
 
-        # Draw the chart axes
+        
         self.draw_axes()
 
         self.snake_size = 20
@@ -120,7 +120,7 @@ class SnakeGame:
             self.food_position = self.set_new_food_position()
             self.canvas.coords(self.food, self.food_position[0], self.food_position[1],
                                self.food_position[0] + self.snake_size, self.food_position[1] + self.snake_size)
-            self.update_stock_value(10)  # Increase stock value by $10
+            self.update_stock_value(10)  
 
     def game_over(self, reason):
         self.is_game_over = True
@@ -140,13 +140,13 @@ class SnakeGame:
         for x, y in self.snake:
             self.snake_objects.append(self.canvas.create_rectangle(x, y, x + self.snake_size, y + self.snake_size, fill="green"))
         self.is_game_over = False
-        self.stock_value = 100  # Reset stock value
-        self.elapsed_time = 0  # Reset timer
+        self.stock_value = 100  
+        self.elapsed_time = 0  
         self.previous_stock_values = [self.stock_value]
         self.stock_canvas.delete("chart_line")
         self.stock_canvas.delete("x_axis_label")
-        self.draw_axes()  # Redraw axes
-        self.update_stock_chart()  # Reset stock chart
+        self.draw_axes()  
+        self.update_stock_chart()  
         self.move_snake()
 
     def update_stock_chart(self):
@@ -157,7 +157,7 @@ class SnakeGame:
         self.stock_canvas.itemconfig(self.stopwatch, text=f"Time: {self.elapsed_time}s")
         
         self.previous_stock_values.append(self.stock_value)
-        self.stock_value -= 5  # Decrease stock value by $5 each second
+        self.stock_value -= 5  
         
         if self.stock_value <= 0:
             self.stock_value = 0
@@ -171,20 +171,20 @@ class SnakeGame:
     def update_stock_value(self, value):
         self.previous_stock_values[-1] = self.stock_value
         self.stock_value += value
-        self.stock_value = min(self.stock_value, 100)  # Cap the stock value at $100
+        self.stock_value = min(self.stock_value, self.max_price)  
 
     def draw_axes(self):
-        # Draw y-axis (price) with labels
-        for i in range(0, self.max_price + 1, 20):
+        
+        for i in range(0, self.max_price + 1, 20):  
             y = 490 - (i * 490 / self.max_price)
             self.stock_canvas.create_line(50, y, 55, y, fill="white")
             self.stock_canvas.create_text(40, y, text=f"${i}", anchor=tk.E, fill="white", font=("Arial", 8))
 
-        # Draw the main y-axis
+        
         self.stock_canvas.create_line(50, 490, 50, 10, fill="white", width=2)
 
     def extend_chart_line(self):
-        # Determine how many segments to draw based on elapsed time
+        
         segments = self.elapsed_time
         segment_width = 400 / segments
 
@@ -197,7 +197,7 @@ class SnakeGame:
             line_color = "green" if y2 < y1 else "red"
             self.stock_canvas.create_line(x1, y1, x2, y2, fill=line_color, width=2, tags="chart_line")
 
-        # Update the x-axis label for the current time
+        
         self.stock_canvas.delete("x_axis_label")
         self.stock_canvas.create_text(450, 495, text=f"{self.elapsed_time}s", anchor=tk.N, fill="white", font=("Arial", 8), tags="x_axis_label")
 
