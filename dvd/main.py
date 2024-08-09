@@ -27,7 +27,12 @@ class SnakeGame:
         self.is_game_over = False
         self.master.bind("<KeyPress>", self.key_press_handler)
         self.move_snake()
+
         
+        self.dx = 10  
+        self.dy = 10  
+        self.move_window()
+
     def set_new_food_position(self):
         return (random.randint(0, (self.width - self.snake_size) // self.snake_size) * self.snake_size,
                 random.randint(0, (self.height - self.snake_size) // self.snake_size) * self.snake_size)
@@ -113,7 +118,37 @@ class SnakeGame:
         self.is_game_over = False
         self.move_snake()
 
+    def move_window(self):
+        
+        x = self.master.winfo_x()
+        y = self.master.winfo_y()
+
+        
+        screen_width = self.master.winfo_screenwidth()
+        screen_height = self.master.winfo_screenheight()
+
+        
+        window_width = self.master.winfo_width()
+        window_height = self.master.winfo_height()
+
+        
+        x_new = x + self.dx
+        y_new = y + self.dy
+
+        
+        if x_new <= 0 or x_new + window_width >= screen_width:
+            self.dx *= -1  
+        if y_new <= 0 or y_new + window_height >= screen_height:
+            self.dy *= -1  
+        
+        
+        self.master.geometry(f"+{x_new}+{y_new}")
+        
+        
+        self.master.after(20, self.move_window)
+
 if __name__ == "__main__":
     root = tk.Tk()
+    root.geometry("500x500")  
     game = SnakeGame(root)
     root.mainloop()
