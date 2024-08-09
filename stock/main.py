@@ -197,7 +197,8 @@ class SnakeGame:
         for i, value in enumerate(self.stock_values):
             x2 = 50 + (i * 400 / self.max_time)
             y2 = 490 - (value * 490 / self.max_price)
-            self.stock_canvas.create_line(x1, y1, x2, y2, fill="green", width=2, tags="chart_line")
+            line_color = "green" if y2 < y1 else "red"
+            self.stock_canvas.create_line(x1, y1, x2, y2, fill=line_color, width=2, tags="chart_line")
             x1, y1 = x2, y2
 
 if __name__ == "__main__":
