@@ -11,3 +11,4 @@ Play the game 'Snake', in many different, inconvenient formats!
 - Camouflaged apple, so it is nearly impossible to know where to point.
 - Snake, but there is no gui, and all the game is written in text.
 - Snake with ads (fake, no actual promotion) (youtube type ads, unskippable, skippable)
+- Snake, but if you get a fruit, then your stock price increases, and otherwise it slowly decreases.
