@@ -1,17 +1,21 @@
 import tkinter as tk
 import random
+from tkinter import simpledialog, messagebox
 
 class SnakeGame:
     def __init__(self, master):
         self.master = master
         self.master.title("Snake Game")
-        self.width = 500
-        self.height = 500
+        self.grid_size = 10  # 10x10 grid
+        self.snake_size = 20
+        self.width = self.grid_size * self.snake_size
+        self.height = self.grid_size * self.snake_size
         self.canvas = tk.Canvas(master, width=self.width, height=self.height, bg='black')
         self.canvas.pack()
-        
-        self.snake_size = 20
-        self.snake = [(100, 100), (80, 100), (60, 100)]
+
+        self.snake = [(4 * self.snake_size, 4 * self.snake_size), 
+                      (3 * self.snake_size, 4 * self.snake_size), 
+                      (2 * self.snake_size, 4 * self.snake_size)]
         self.snake_direction = "Right"
         
         self.food_position = self.set_new_food_position()
@@ -29,8 +33,8 @@ class SnakeGame:
         self.move_snake()
         
     def set_new_food_position(self):
-        return (random.randint(0, (self.width - self.snake_size) // self.snake_size) * self.snake_size,
-                random.randint(0, (self.height - self.snake_size) // self.snake_size) * self.snake_size)
+        return (random.randint(0, self.grid_size - 1) * self.snake_size,
+                random.randint(0, self.grid_size - 1) * self.snake_size)
         
     def move_snake(self):
         if self.is_game_over:
@@ -56,25 +60,33 @@ class SnakeGame:
         self.check_food_collision()
         
         if not self.is_game_over:
-            self.master.after(100, self.move_snake)
+            self.ask_trivia_question()
+            self.master.after(200, self.move_snake)  # Slow down to 200ms for easier playability
         
     def key_press_handler(self, event):
-        new_direction = event.keysym
-        
-        if new_direction in ["Left", "Right", "Up", "Down"]:
-            self.change_direction(new_direction)
-        elif new_direction == "q":
+        if event.keysym == "q":
             self.master.quit()
-        elif new_direction == "Return" and self.is_game_over:
+        elif event.keysym == "Return" and self.is_game_over:
             self.restart_game()
 
-    def change_direction(self, new_direction):
-        all_directions = ["Left", "Right", "Up", "Down"]
-        opposites = ({"Left", "Right"}, {"Up", "Down"})
+    def ask_trivia_question(self):
+        question = "What is 2 + 2?"  # Simple example question
+        correct_answer = "4"
+        answer = simpledialog.askstring("Trivia", question)
         
-        if (new_direction in all_directions and 
-            {new_direction, self.snake_direction} not in opposites):
-            self.snake_direction = new_direction
+        if answer == correct_answer:
+            self.turn_left()
+        elif answer:
+            self.turn_right()
+        # If W is clicked, no turn is made (snake continues in the current direction)
+    
+    def turn_left(self):
+        direction_map = {"Up": "Left", "Left": "Down", "Down": "Right", "Right": "Up"}
+        self.snake_direction = direction_map[self.snake_direction]
+    
+    def turn_right(self):
+        direction_map = {"Up": "Right", "Right": "Down", "Down": "Left", "Left": "Up"}
+        self.snake_direction = direction_map[self.snake_direction]
     
     def check_collisions(self):
         x, y = self.snake[0]
@@ -100,7 +112,9 @@ class SnakeGame:
 
     def restart_game(self):
         self.canvas.delete("all")
-        self.snake = [(100, 100), (80, 100), (60, 100)]
+        self.snake = [(4 * self.snake_size, 4 * self.snake_size), 
+                      (3 * self.snake_size, 4 * self.snake_size), 
+                      (2 * self.snake_size, 4 * self.snake_size)]
         self.snake_direction = "Right"
         self.food_position = self.set_new_food_position()
         self.food = self.canvas.create_rectangle(*self.food_position, 
