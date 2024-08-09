@@ -35,7 +35,7 @@ class SnakeGame:
         self.ad_popup_label = None
         self.ad_popup_timer = None
         
-        self.snake_speed = 135  # 35% slower
+        self.snake_speed = 135  
         self.ad_timer = 10
         self.next_ad_time = self.get_next_ad_time()
         self.ad_thread = threading.Thread(target=self.play_ads)
@@ -126,8 +126,8 @@ class SnakeGame:
         for x, y in self.snake:
             self.snake_objects.append(self.canvas.create_rectangle(x, y, x + self.snake_size, y + self.snake_size, fill="green"))
         self.is_game_over = False
-        self.next_ad_time = self.get_next_ad_time()  # Reset ad timer
-        if not self.ad_thread.is_alive():  # Restart ad thread if it's not alive
+        self.next_ad_time = self.get_next_ad_time()  
+        if not self.ad_thread.is_alive():  
             self.ad_thread = threading.Thread(target=self.play_ads)
             self.ad_thread.start()
         self.move_snake()
@@ -169,22 +169,24 @@ class SnakeGame:
         ad_window.overrideredirect(True)
         ad_window.attributes("-topmost", True)
 
-        # Path to the specific ad video
+        
         video_path = "./db/the_only.mp4"
 
-        # Use OpenCV to play the video
+        
         cap = cv2.VideoCapture(video_path)
 
         def play_video():
+            label = tk.Label(ad_window)
+            label.pack()
             while cap.isOpened() and not self.is_game_over:
                 ret, frame = cap.read()
                 if ret:
                     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     frame = Image.fromarray(frame)
                     frame = ImageTk.PhotoImage(frame)
-                    label = tk.Label(ad_window, image=frame)
+                    label.config(image=frame)
                     label.image = frame
-                    label.pack()
+                    ad_window.update_idletasks()
                     ad_window.update()
                 else:
                     break
