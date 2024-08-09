@@ -18,6 +18,10 @@
         h1 {
             margin-bottom: 20px;
         }
+        #countdown {
+            font-size: 24px;
+            color: #333;
+        }
         #warning {
             color: red;
             font-size: 20px;
@@ -28,6 +32,7 @@
 <body>
 
 <h1>Snake Game (Check Console)</h1>
+<p id="countdown">The game will start in 3 seconds...</p>
 <p id="warning">This game is not available on mobile devices. Please play on a desktop or laptop computer.</p>
 
 <script>
@@ -38,15 +43,18 @@
     if (isMobile()) {
         document.getElementById('warning').style.display = 'block';
         document.querySelector('h1').style.display = 'none';
+        document.getElementById('countdown').style.display = 'none';
     } else {
         const gridSize = 10;
-        let snake, direction, food, gameOver;
+        let snake, direction, food, gameOver, gamePaused;
 
         function initializeGame() {
             snake = [{ x: 2, y: 2 }];
             direction = { x: 1, y: 0 };
             food = { x: Math.floor(Math.random() * gridSize), y: Math.floor(Math.random() * gridSize) };
             gameOver = false;
+            gamePaused = true; // Start the game in paused mode
+            drawGame();
         }
 
         function changeDirection(event) {
@@ -67,7 +75,7 @@
                 case 'Enter':
                     if (gameOver) {
                         initializeGame();
-                        updateGame();
+                        drawGame();
                     }
                     break;
             }
@@ -80,8 +88,31 @@
             };
         }
 
+        function drawGame() {
+            console.clear();
+            console.log("Snake Game:");
+            for (let y = 0; y < gridSize; y++) {
+                let row = '';
+                for (let x = 0; x < gridSize; x++) {
+                    if (x === food.x && y === food.y) {
+                        row += '🍎 ';
+                    } else if (snake.some(segment => segment.x === x && segment.y === y)) {
+                        if (x === snake[0].x && y === snake[0].y) {
+                            row += '🟢 ';
+                        } else {
+                            row += '🟩 ';
+                        }
+                    } else {
+                        row += '⬜ ';
+                    }
+                }
+                row += ' '.repeat(y);
+                console.log(row);
+            }
+        }
+
         function updateGame() {
-            if (gameOver) return;
+            if (gameOver || gamePaused) return;
 
             const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
 
@@ -110,33 +141,31 @@
                 snake.pop();
             }
 
-            console.clear();
-            console.log("Snake Game:");
-            for (let y = 0; y < gridSize; y++) {
-                let row = '';
-                for (let x = 0; x < gridSize; x++) {
-                    if (x === food.x && y === food.y) {
-                        row += '🍎 ';
-                    } else if (snake.some(segment => segment.x === x && segment.y === y)) {
-                        if (x === head.x && y === head.y) {
-                            row += '🟢 ';
-                        } else {
-                            row += '🟩 ';
-                        }
-                    } else {
-                        row += '⬜ ';
-                    }
-                }
-                row += ' '.repeat(y);
-                console.log(row);
-            }
+            drawGame();
 
             setTimeout(updateGame, 200);
         }
 
+        function startGameCountdown() {
+            let countdown = 3;
+            const countdownElement = document.getElementById('countdown');
+
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    countdownElement.textContent = `The game will start in ${countdown} seconds...`;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownElement.style.display = 'none';
+                    gamePaused = false; // Unpause the game
+                    updateGame(); // Start the game loop
+                }
+            }, 1000);
+        }
+
         document.addEventListener('keydown', changeDirection);
         initializeGame();
-        updateGame();
+        startGameCountdown();
     }
 </script>
 
