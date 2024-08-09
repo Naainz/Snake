@@ -8,103 +8,59 @@ class Field:
         self.width = width
         self.height = height
         self.icons = {
-            0: 'X',
-            1: 'O',
-            2: '🐍',
-            3: '🍎'
+            0: ' ',   # Empty space
+            1: 'O',   # Body of the snake
+            2: '🐍',  # Head of the snake
+            3: '🍎',  # Entity to eat
         }
-        self.snake_coords = []
+        self.field = []
         self._generate_field()
         self.add_entity()
 
     def add_entity(self):
         while True:
-            i = randint(0, self.height - 1)
-            j = randint(0, self.width - 1)
-            entity = [i, j]
-            if entity not in self.snake_coords:
+            i = randint(1, self.height - 2)
+            j = randint(1, self.width - 2)
+            if self.field[i][j] == 0:  # Place apple where there's no snake
                 self.field[i][j] = 3
                 break
 
     def _generate_field(self):
-        self.field = [[0 for j in range(self.width)] for i in range(self.height)]
+        self.field = [[0 for _ in range(self.width)] for _ in range(self.height)]
 
-    def _clear_field(self):
-        self.field = [[j if j != 1 and j != 2 else 0 for j in i] for i in self.field]
+    def render(self, screen, snake_coords):
+        # Clear the field before rendering
+        for i in range(1, self.height - 1):
+            for j in range(1, self.width - 1):
+                if self.field[i][j] != 3:  # Keep the apple
+                    self.field[i][j] = 0  # Clear snake positions
 
-    def render(self, screen):
-        self._clear_field()
+        # Update snake positions on the field
+        for coord in snake_coords[:-1]:
+            self.field[coord[0]][coord[1]] = 1  # Body of the snake
 
-        for i, j in self.snake_coords:
-            self.field[i][j] = 1
+        head = snake_coords[-1]
+        self.field[head[0]][head[1]] = 2  # Head of the snake
 
-        head = self.snake_coords[-1]
-        self.field[head[0]][head[1]] = 2
-
-        for i in range(self.height):
-            row = ''
-            for j in range(self.width):
-                row += self.icons[self.field[i][j]]
-            
-            
-            screen.addstr(i, 0, row)
-
-    def get_entity_pos(self):
+        # Render the field with border
         for i in range(self.height):
             for j in range(self.width):
-                if self.field[i][j] == 3:
-                    return [i, j]
-        return [-1, -1]
-
-    def is_snake_eat_entity(self):
-        entity = self.get_entity_pos()
-        head = self.snake_coords[-1]
-        return entity == head
+                if i == 0 or i == self.height - 1 or j == 0 or j == self.width - 1:
+                    screen.addstr(i, j * 2, '█')  # Border
+                else:
+                    screen.addstr(i, j * 2, self.icons[self.field[i][j]])
 
 class Snake:
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, field):
         self.direction = curses.KEY_RIGHT
-        self.coords = [[0, 0], [0, 1], [0, 2], [0, 3]]
+        self.coords = [[1, 1], [1, 2], [1, 3], [1, 4]]
+        self.field = field
 
     def set_direction(self, ch):
-        if ch == curses.KEY_LEFT and self.direction == curses.KEY_RIGHT:
-            return
-        if ch == curses.KEY_RIGHT and self.direction == curses.KEY_LEFT:
-            return
-        if ch == curses.KEY_UP and self.direction == curses.KEY_DOWN:
-            return
-        if ch == curses.KEY_DOWN and self.direction == curses.KEY_UP:
-            return
-        self.direction = ch
-
-    def level_up(self):
-        a = self.coords[0]
-        b = self.coords[1]
-        tail = a[:]
-
-        if a[0] < b[0]:
-            tail[0] -= 1
-        elif a[1] < b[1]:
-            tail[1] -= 1
-        elif a[0] > b[0]:
-            tail[0] += 1
-        elif a[1] > b[1]:
-            tail[1] += 1
-
-        self.coords.insert(0, tail)
-
-    def is_alive(self):
-        head = self.coords[-1]
-        snake_body = self.coords[:-1]
-
-        if head[0] < 0 or head[0] >= self.field.height or head[1] < 0 or head[1] >= self.field.width:
-            print("Game Over! You hit a wall.")
-            return False
-        if head in snake_body:
-            print("Game Over! You ran into yourself.")
-            return False
-        return True
+        opposite_directions = {curses.KEY_LEFT: curses.KEY_RIGHT, curses.KEY_RIGHT: curses.KEY_LEFT,
+                               curses.KEY_UP: curses.KEY_DOWN, curses.KEY_DOWN: curses.KEY_UP}
+        if ch != opposite_directions.get(self.direction, None):
+            self.direction = ch
 
     def move(self):
         head = self.coords[-1][:]
@@ -118,53 +74,48 @@ class Snake:
         elif self.direction == curses.KEY_LEFT:
             head[1] -= 1
 
-        del self.coords[0]
+        # Check for collisions with walls or self
+        if head in self.coords or head[0] in (0, self.field.height - 1) or head[1] in (0, self.field.width - 1):
+            return False  # Game over
+
         self.coords.append(head)
-        self.field.snake_coords = self.coords
 
-        if not self.is_alive():
-            return False
-
-        if self.field.is_snake_eat_entity():
-            curses.beep()
-            self.level_up()
-            self.field.add_entity()
+        # Check if apple is eaten
+        if self.field.field[head[0]][head[1]] == 3:
+            self.field.add_entity()  # Add a new apple
+        else:
+            self.coords.pop(0)  # Remove the tail
 
         return True
 
-    def set_field(self, field):
-        self.field = field
-
 def main(screen):
+    curses.curs_set(0)  # Hide the cursor
+    screen.nodelay(1)  # Non-blocking input
+    field = Field(25, 15)
+    snake = Snake(field)
+
     while True:
-        screen.clear()
-        field = Field(25,10)
-        snake = Snake("Hackclub Arcade")
-        snake.set_field(field)
-        screen.timeout(100)
+        ch = screen.getch()
+        if ch != -1:
+            snake.set_direction(ch)
 
-        while True:
-            ch = screen.getch()
-            if ch != -1:
-                snake.set_direction(ch)
-
-            if ch == ord('q'):
-                sys.exit()
-
-            if not snake.move():
-                break
-
-            field.render(screen)
-            screen.refresh()
-            time.sleep(0.1)
-
-        screen.addstr(0, 0, "Press Enter to play again or 'q' to quit.")
-        screen.refresh()
-        key = screen.getch()
-        if key == ord('q'):
+        if ch == ord('q'):
             sys.exit()
-        elif key == 10:  
-            continue
+
+        if not snake.move():
+            screen.addstr(0, 0, "Game Over! Press Enter to play again or 'q' to quit.")
+            screen.refresh()
+            while True:
+                key = screen.getch()
+                if key == ord('q'):
+                    sys.exit()
+                elif key == 10:  # Enter key
+                    main(screen)  # Restart game
+                    return
+
+        field.render(screen, snake.coords)
+        screen.refresh()
+        time.sleep(0.1)
 
 if __name__ == '__main__':
     curses.wrapper(main)
