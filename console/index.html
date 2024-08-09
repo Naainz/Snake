@@ -40,12 +40,14 @@
         document.querySelector('h1').style.display = 'none';
     } else {
         const gridSize = 10;
-        let snake = [{ x: 2, y: 2 }];
-        let direction = { x: 1, y: 0 };
-        let food = { x: 5, y: 5 };
-        let gameOver = false;
+        let snake, direction, food, gameOver;
 
-        document.addEventListener('keydown', changeDirection);
+        function initializeGame() {
+            snake = [{ x: 2, y: 2 }];
+            direction = { x: 1, y: 0 };
+            food = { x: Math.floor(Math.random() * gridSize), y: Math.floor(Math.random() * gridSize) };
+            gameOver = false;
+        }
 
         function changeDirection(event) {
             const keyPressed = event.key;
@@ -61,6 +63,12 @@
                     break;
                 case 'ArrowRight':
                     if (direction.x === 0) direction = { x: 1, y: 0 };
+                    break;
+                case 'Enter':
+                    if (gameOver) {
+                        initializeGame();
+                        updateGame();
+                    }
                     break;
             }
         }
@@ -80,6 +88,7 @@
             if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
                 gameOver = true;
                 console.log("Game Over! You hit a wall.");
+                console.log("Press Enter to play again.");
                 return;
             }
 
@@ -87,6 +96,7 @@
                 if (segment.x === head.x && segment.y === head.y) {
                     gameOver = true;
                     console.log("Game Over! You ran into yourself.");
+                    console.log("Press Enter to play again.");
                     return;
                 }
             }
@@ -117,13 +127,15 @@
                         row += '⬜ ';
                     }
                 }
-                row += ' '.repeat(y); // Append a distinct number of spaces to each line
+                row += ' '.repeat(y);
                 console.log(row);
             }
 
             setTimeout(updateGame, 200);
         }
 
+        document.addEventListener('keydown', changeDirection);
+        initializeGame();
         updateGame();
     }
 </script>
